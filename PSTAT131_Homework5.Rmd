@@ -1,0 +1,49 @@
+---
+title: "PSTAT131 Homework 4"
+author: "Shivani Kharva"
+date: "2022-10-31"
+output:
+  html_document:
+    toc: true
+---
+
+### Initial Setup  
+
+```{r, message = FALSE}
+# Loading the data/ packages
+pokemon_data <- read.csv("data/Pokemon.csv")
+library(tidymodels)
+library(ISLR)
+library(tidyverse)
+library(discrim)
+library(poissonreg)
+tidymodels_prefer()
+```
+
+### Exercise 1  
+```{r}
+# Loading in the `janitor` package
+library(janitor)
+
+# Using clean_names() on the pokemon data
+pokemon_clean <- clean_names(pokemon_data)
+
+# For comparison ...
+head(pokemon_data)
+head(pokemon_clean)
+```
+
+It appears that clean_names() changed the column names to a cleaner format without any extra characters or symbols and all in lower-case font. I think clean_names() is useful because it cleans up the variable names and simplifies them. If variable names are complicated, it can become confusing so having a function like clean_names() that automatically simplifies the variable/column names is quite useful.  
+
+### Exercise 2  
+
+
+
+
+
+
+
+
+
+
+
