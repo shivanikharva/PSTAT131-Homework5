@@ -17,6 +17,7 @@ library(ISLR)
 library(tidyverse)
 library(discrim)
 library(poissonreg)
+library(glmnet)
 tidymodels_prefer()
 ```
 
@@ -36,14 +37,109 @@ head(pokemon_clean)
 It appears that clean_names() changed the column names to a cleaner format without any extra characters or symbols and all in lower-case font. I think clean_names() is useful because it cleans up the variable names and simplifies them. If variable names are complicated, it can become confusing so having a function like clean_names() that automatically simplifies the variable/column names is quite useful.  
 
 ### Exercise 2  
+```{r}
+# Creating a bar chart of `type_1`
+type_1_bar_chart <- ggplot(pokemon_clean, aes(type_1)) +
+  geom_bar()
+type_1_bar_chart
+```
 
+There are 18 classes of the outcome (18 different types for type 1 of the Pokemon).The Pokemon type that has the fewest Pokemon is the Flying type. The type with the second fewest Pokemon is Fairy.  
 
+```{r}
+# Filtering the data set to only contain Pokemon of the given types
+pokemon_final <- pokemon_clean %>% 
+  filter(type_1 %in% c("Bug", "Fire", "Grass", "Normal", "Water", "Psychic"))
+```
 
+```{r}
+# Converting given variables to factors
+pokemon_final$type_1 <- as.factor(pokemon_final$type_1)
+pokemon_final$legendary <- as.factor(pokemon_final$legendary)
+pokemon_final$generation <- as.factor(pokemon_final$generation)
+```
 
+### Exercise 3  
 
+```{r}
+# Splitting the data and stratifying by `type_1`
+pokemon_split <- initial_split(pokemon_final, prop = 0.7, strata = type_1)
+pokemon_train <- training(pokemon_split)
+pokemon_test <- testing(pokemon_split)
+```
 
+```{r}
+# Verifying that the training and testing data have the correct number of outcomes
+nrow(pokemon_train)/nrow(pokemon_final)
+nrow(pokemon_test)/nrow(pokemon_final)
+```
 
+The training data has \~70% of the observations of the original data set and the testing data has \~30% of the observations of the original data set.   
 
+```{r}
+# Using v-fold cross validation with 5 folds and type_1 strata
+pokemon_folds <- vfold_cv(pokemon_train, v = 5, strata = type_1)
+```
 
+Stratifying the folds might be a good idea in order to ensure that each fold has the same proportion of Pokemon of each type since there are not an equal number of Pokemon for each type chosen.  
 
+### Exercise 4  
+
+```{r}
+# Setting up the recipe
+pokemon_recipe <- recipe(type_1 ~ legendary + generation + sp_atk + attack + speed + defense + hp + sp_def, data = pokemon_train) %>% 
+  # Dummy coding `legendary` and `generation`
+  step_dummy(all_nominal_predictors()) %>% 
+  # Centering and scaling all predictors
+  step_normalize(all_predictors())
+```
+
+### Exercise 5  
+
+```{r}
+# Setting up the model
+multinom_model <- multinom_reg(mixture = tune(), penalty = tune()) %>% 
+  set_mode("classification") %>% 
+  set_engine("glmnet")
+
+# Setting up the workflow
+multinom_workflow <- workflow() %>% 
+  # Adding the model
+  add_model(multinom_model) %>% 
+  # Adding the recipe
+  add_recipe(pokemon_recipe)
+```
+
+```{r}
+# Creating a grid for penalty and mitxture
+penalty_mixture_grid <- grid_regular(penalty(range = c(-5, 5)), mixture(range = c(0,1)), levels = 10)
+penalty_mixture_grid
+```
+
+We will be fitting   
+
+### Exercise 6  
+
+```{r}
+# Fitting the models
+tune_res <- tune_grid(
+  multinom_workflow,
+  resamples = pokemon_folds,
+  grid = penalty_mixture_grid
+)
+tune_res
+```
+
+```{r}
+# Using autoplot() on the results
+autoplot(tune_res)
+```
+
+Explanation
+
+### Exercise 7  
+
+```{r}
+
+```
 
