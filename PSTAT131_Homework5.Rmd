@@ -19,6 +19,7 @@ library(discrim)
 library(poissonreg)
 library(glmnet)
 tidymodels_prefer()
+set.seed(0124)
 ```
 
 ### Exercise 1  
@@ -111,12 +112,12 @@ multinom_workflow <- workflow() %>%
 ```
 
 ```{r}
-# Creating a grid for penalty and mitxture
+# Creating a grid for penalty and mixture
 penalty_mixture_grid <- grid_regular(penalty(range = c(-5, 5)), mixture(range = c(0,1)), levels = 10)
 penalty_mixture_grid
 ```
 
-We will be fitting   
+We will be fitting 500 (100 combinations of penalty and mixture for the model * 5 folds) models.  
 
 ### Exercise 6  
 
@@ -136,10 +137,67 @@ autoplot(tune_res)
 ```
 
 Explanation
+The largest values of penalty appear to have the lowest accuracy and and ROC AUC. As we increase the penalty, the model does terribly when it gets too high because the high penalty value causes the slopes to be shrunk so far down that the model cannot predict accurately.  
+
+Also, from the plot, it appears that lower values of mixture have a higher accuracy (since the higher values appear to drop the most after the first peak). Also, the mid to lower values of mixture have a higher ROC AUC than the higher values and it is apparent from the graph that the ROC AUC of the higher values of mixture drops down much faster than that of the lower values. This makes sense because lower values of mixture relate to ridge regression while higher values of mixture relate to lasso regression. Ridge has a higher ROC AUC than lasso for longer because lasso shrinks coefficients earlier than it needs. From the graph, we can see that lasso regression underperforms ridge regression at higher values of lambda (penalty term).  
 
 ### Exercise 7  
 
 ```{r}
-
+# Choosing the model with the optimal roc_auc
+best_model <- select_best(tune_res, metric = "roc_auc")
+best_model
 ```
+
+```{r}
+# Finalizing the workflow
+final_workflow <- finalize_workflow(multinom_workflow, best_model)
+
+# Fitting the model to the training set
+final_fit <- fit(final_workflow, pokemon_train)
+
+# Assessing the accuracy on the testing set
+final_tibble <- augment(final_fit, new_data = pokemon_test) 
+
+final_tibble %>% 
+  accuracy(truth = type_1, estimate = .pred_class)
+testing_acc
+```
+
+### Exercise 8  
+
+```{r}
+# Calculating the overall ROC AUC on the testing set
+final_tibble %>% 
+  roc_auc(truth = type_1, estimate = .pred_Bug:.pred_Water)
+
+# Creating plots of the different ROC
+all_roc_curves <- final_tibble %>% 
+  roc_curve(type_1, .pred_Bug:.pred_Water) %>% 
+  autoplot()
+all_roc_curves
+```
+
+```{r}
+# Creating and visualizing confusion matrix
+confusion_matrix <- final_tibble %>%
+  conf_mat(type_1, .pred_class) %>% 
+  autoplot(type = "heatmap")
+confusion_matrix
+```
+
+I notice that the overall ROC AUC (~0.7) is relatively good, but from the individual ROC plots, it is apparent that the model does worse for some types than others. From the ROC plots, the types the model is best at differentiating from other types appear to be Normal and Psychic. The types the model does slightly worse at differentiating from other types but still relatively okay are Bug, Fire, and Grass. However, the type the model is worst at differentiating from other types (no better than a coin flip) is Water.  
+
+From the confusion matrix, we can see that the type the model predicts the most is Water, which explains why the ROC curve for water shows such a low ROC AUC. The model may make the most accurate predictions for the Water type overall, but it makes many more inaccurate predictions of the Water type than accurate predictions, which where it predicts the Pokemon is of Water type when it really is not (19 accurate predictions vs. 49 inaccurate predictions). Also, it is apparent that the model may be slightly better at predicting the Normal type Pokemon as it has more accurate predictions of the Normal type than inaccurate predictions (16 accurate predictions vs. 15 inaccurate predictions).  
+
+The model might be worst at differentiating the Water type Pokemon because there are significantly more Water type Pokemon in our data set than any other type so it may be defaulting to Water when it cannot differentiate the POkemon into any other specific type.   
+
+
+
+
+
+
+
+
+
 
