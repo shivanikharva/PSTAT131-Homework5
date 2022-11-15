@@ -159,7 +159,7 @@ final_fit <- fit(final_workflow, pokemon_train)
 # Assessing the accuracy on the testing set
 final_tibble <- augment(final_fit, new_data = pokemon_test) 
 
-final_tibble %>% 
+testing_acc <- final_tibble %>% 
   accuracy(truth = type_1, estimate = .pred_class)
 testing_acc
 ```
