@@ -40,7 +40,7 @@ It appears that clean_names() changed the column names to a cleaner format witho
 ### Exercise 2  
 ```{r}
 # Creating a bar chart of `type_1`
-type_1_bar_chart <- ggplot(pokemon_clean, aes(type_1)) +
+type_1_bar_chart <- ggplot(pokemon_clean, aes(y = type_1)) +
   geom_bar()
 type_1_bar_chart
 ```
@@ -82,7 +82,7 @@ The training data has \~70% of the observations of the original data set and the
 pokemon_folds <- vfold_cv(pokemon_train, v = 5, strata = type_1)
 ```
 
-Stratifying the folds might be a good idea in order to ensure that each fold has the same proportion of Pokemon of each type since there are not an equal number of Pokemon for each type chosen.  
+Stratifying the folds might be a good idea in order to ensure that each fold has the same distribution of Pokemon of each type since there are not an equal number of Pokemon for each type chosen.  
 
 ### Exercise 4  
 
@@ -168,6 +168,8 @@ testing_acc <- final_tibble %>%
 testing_acc
 ```
 
+The accuracy of the model on the testing set is 0.3428571.  
+
 ### Exercise 8  
 
 ```{r}
@@ -192,7 +194,9 @@ confusion_matrix
 
 I notice that the overall ROC AUC (~0.7) is relatively good, but from the individual ROC plots, it is apparent that the model does worse for some types than others. From the ROC plots, the types the model is best at differentiating from other types appear to be Normal and Psychic (more so for Normal). The types the model does slightly worse at differentiating from other types but still relatively okay are Bug, Fire, and Grass. However, the type the model is worst at differentiating from other types (no better than a coin flip) is Water.  
 
-From the confusion matrix, we can see that the type the model predicts the most is Water, which explains why the ROC curve for water shows such a low ROC AUC. The model may make the most accurate predictions for the Water type overall, but it makes many more inaccurate predictions of the Water type than accurate predictions, which where it predicts the Pokemon is of Water type when it really is not (19 accurate predictions vs. 49 inaccurate predictions). Also, it is apparent that the model may be slightly better at predicting the Normal type Pokemon as it has more accurate predictions of the Normal type than inaccurate predictions (16 accurate predictions vs. 15 inaccurate predictions).  
+From the confusion matrix, we can see that the type the model predicts the most is Water, which explains why the ROC curve for water shows such a low ROC AUC (the model is not very good at discriminating Water from the other types). The model may make the most accurate predictions for the Water type overall, but it makes many more inaccurate predictions of the Water type than accurate predictions, which where it predicts the Pokemon is of Water type when it really is not (19 accurate predictions vs. 49 inaccurate predictions). From those inaccurate predictions, we can see that the model has quite poor prediction of Grass because it inaccurately classifies it as Water more so than the other types. This makes intuitive sense because those two may have similar qualities (just based on substantive knowledge about the relationship between grass and water).   
+
+Also, it is apparent that the model may be slightly better at predicting the Normal type Pokemon as it has more accurate predictions of the Normal type than inaccurate predictions (16 accurate predictions vs. 15 inaccurate predictions).  
 
 The model might be worst at differentiating the Water type Pokemon because there are significantly more Water type Pokemon in our data set than any other type so it may be defaulting to Water when it cannot differentiate the POkemon into any other specific type.   
 
