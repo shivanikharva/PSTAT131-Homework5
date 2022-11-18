@@ -1,7 +1,7 @@
 ---
-title: "PSTAT131 Homework 4"
+title: "PSTAT131 Homework 5"
 author: "Shivani Kharva"
-date: "2022-10-31"
+date: "2022-11-07"
 output:
   html_document:
     toc: true
@@ -121,17 +121,21 @@ We will be fitting 500 (100 combinations of penalty and mixture for the model * 
 
 ### Exercise 6  
 
-```{r}
+```{r, eval = FALSE}
 # Fitting the models
 tune_res <- tune_grid(
   multinom_workflow,
   resamples = pokemon_folds,
   grid = penalty_mixture_grid
 )
-tune_res
+
+write_rds(tune_res, file = "tuned_elastic.rds")
 ```
 
 ```{r}
+# Loading the fit
+tune_res <- read_rds(file = "tuned_elastic.rds")
+
 # Using autoplot() on the results
 autoplot(tune_res)
 ```
@@ -173,7 +177,7 @@ final_tibble %>%
 
 # Creating plots of the different ROC
 all_roc_curves <- final_tibble %>% 
-  roc_curve(type_1, .pred_Bug:.pred_Water) %>% 
+  roc_curve(truth = type_1, estimate = .pred_Bug:.pred_Water) %>% 
   autoplot()
 all_roc_curves
 ```
@@ -186,7 +190,7 @@ confusion_matrix <- final_tibble %>%
 confusion_matrix
 ```
 
-I notice that the overall ROC AUC (~0.7) is relatively good, but from the individual ROC plots, it is apparent that the model does worse for some types than others. From the ROC plots, the types the model is best at differentiating from other types appear to be Normal and Psychic. The types the model does slightly worse at differentiating from other types but still relatively okay are Bug, Fire, and Grass. However, the type the model is worst at differentiating from other types (no better than a coin flip) is Water.  
+I notice that the overall ROC AUC (~0.7) is relatively good, but from the individual ROC plots, it is apparent that the model does worse for some types than others. From the ROC plots, the types the model is best at differentiating from other types appear to be Normal and Psychic (more so for Normal). The types the model does slightly worse at differentiating from other types but still relatively okay are Bug, Fire, and Grass. However, the type the model is worst at differentiating from other types (no better than a coin flip) is Water.  
 
 From the confusion matrix, we can see that the type the model predicts the most is Water, which explains why the ROC curve for water shows such a low ROC AUC. The model may make the most accurate predictions for the Water type overall, but it makes many more inaccurate predictions of the Water type than accurate predictions, which where it predicts the Pokemon is of Water type when it really is not (19 accurate predictions vs. 49 inaccurate predictions). Also, it is apparent that the model may be slightly better at predicting the Normal type Pokemon as it has more accurate predictions of the Normal type than inaccurate predictions (16 accurate predictions vs. 15 inaccurate predictions).  
 
