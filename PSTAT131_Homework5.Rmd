@@ -35,7 +35,7 @@ head(pokemon_data)
 head(pokemon_clean)
 ```
 
-It appears that clean_names() changed the column names to a cleaner format without any extra characters or symbols and all in lower-case font. I think clean_names() is useful because it cleans up the variable names and simplifies them. If variable names are complicated, it can become confusing so having a function like clean_names() that automatically simplifies the variable/column names is quite useful.  
+It appears that clean_names() changed the column names to a cleaner format without any extra characters or symbols and all in lower-case font (snake case). I think clean_names() is useful because it cleans up the variable names and simplifies them. If variable names are complicated, it can become confusing so having a function like clean_names() that automatically simplifies the variable/column names is quite useful (makes it easier to call the variables).  
 
 ### Exercise 2  
 ```{r}
@@ -90,7 +90,7 @@ Stratifying the folds might be a good idea in order to ensure that each fold has
 # Setting up the recipe
 pokemon_recipe <- recipe(type_1 ~ legendary + generation + sp_atk + attack + speed + defense + hp + sp_def, data = pokemon_train) %>% 
   # Dummy coding `legendary` and `generation`
-  step_dummy(all_nominal_predictors()) %>% 
+  step_dummy(legendary, generation) %>% 
   # Centering and scaling all predictors
   step_normalize(all_predictors())
 ```
@@ -168,7 +168,7 @@ testing_acc <- final_tibble %>%
 testing_acc
 ```
 
-The accuracy of the model on the testing set is 0.3428571.  
+The accuracy of the model on the testing set is 0.3428571 (not very good).  
 
 ### Exercise 8  
 
@@ -192,13 +192,13 @@ confusion_matrix <- final_tibble %>%
 confusion_matrix
 ```
 
-I notice that the overall ROC AUC (~0.7) is relatively good, but from the individual ROC plots, it is apparent that the model does worse for some types than others. From the ROC plots, the types the model is best at differentiating from other types appear to be Normal and Psychic (more so for Normal). The types the model does slightly worse at differentiating from other types but still relatively okay are Bug, Fire, and Grass. However, the type the model is worst at differentiating from other types (no better than a coin flip) is Water.  
+I notice that the overall ROC AUC (~0.7) is not great but also not horrible, but from the individual ROC plots, it is apparent that the model does worse for some types than others. From the ROC plots, the types the model is best at differentiating from other types appear to be Normal and Psychic (more so for Normal). The types the model does slightly worse at differentiating from other types but still relatively okay are Bug, Fire, and Grass. However, the type the model is worst at differentiating from other types (no better than a coin flip) is Water.  
 
 From the confusion matrix, we can see that the type the model predicts the most is Water, which explains why the ROC curve for water shows such a low ROC AUC (the model is not very good at discriminating Water from the other types). The model may make the most accurate predictions for the Water type overall, but it makes many more inaccurate predictions of the Water type than accurate predictions, which where it predicts the Pokemon is of Water type when it really is not (19 accurate predictions vs. 49 inaccurate predictions). From those inaccurate predictions, we can see that the model has quite poor prediction of Grass because it inaccurately classifies it as Water more so than the other types. This makes intuitive sense because those two may have similar qualities (just based on substantive knowledge about the relationship between grass and water).   
 
 Also, it is apparent that the model may be slightly better at predicting the Normal type Pokemon as it has more accurate predictions of the Normal type than inaccurate predictions (16 accurate predictions vs. 15 inaccurate predictions).  
 
-The model might be worst at differentiating the Water type Pokemon because there are significantly more Water type Pokemon in our data set than any other type so it may be defaulting to Water when it cannot differentiate the POkemon into any other specific type.   
+The model might be worst at differentiating the Water type Pokemon because there are significantly more Water type Pokemon in our data set than any other type so it may be defaulting to Water when it cannot differentiate the Pokemon into any other specific type.   
 
 
 
